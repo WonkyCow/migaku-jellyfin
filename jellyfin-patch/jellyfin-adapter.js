@@ -1,15 +1,15 @@
 /*
  * Jellyfin adapter for Migaku (personal-use POC). Original code, written for this project.
  *
- * This is NOT a standalone script: patch.py inserts it verbatim into the page-world bundle
- * (jFNk...umd.cjs), inside the closure that defines the adapter base class `uo`, the debug
- * logger `v` and the language normaliser `RV` (minified names for Migaku 1.32.0.0).
- * Placeholders __JF_HOST_RE__ is replaced by patch.py with a regex source matching your hosts.
+ * This is NOT a standalone script: patch.py inserts it into the page-world bundle (*.umd.cjs),
+ * inside the closure that defines Migaku's adapter base class and language normaliser.
+ * patch.py locates those minified identifiers by pattern and substitutes the placeholders
+ * __BASE__, __LANGNORM__ and __JF_HOST_RE__ (a regex source matching your configured hosts).
  */
 const JF_HOST_RE = /^(?:__JF_HOST_RE__)$/i;
 const jfMatch = () => JF_HOST_RE.test(location.hostname) && /\/web\//.test(location.pathname);
 
-class JellyfinAdapter extends uo {
+class JellyfinAdapter extends __BASE__ {
   videoElementSelector = "video.htmlvideoplayer";
   // Sidebar: stand-in is appended to <body>; the player container is shrunk to make room.
   standInSiblingSelector = ".videoPlayerContainer";
@@ -26,6 +26,7 @@ class JellyfinAdapter extends uo {
   pollId = null;
   lastAudioCheck = 0;
   vttCache = new Map();
+  widthObserver = null;
   styleId = "migaku-jf-style";
   uiStyleId = "migaku-jf-ui-hidden";
 
@@ -81,7 +82,7 @@ class JellyfinAdapter extends uo {
         const raw = this.iso1(s.Language) || "und";
         let lang = raw;
         try {
-          lang = RV(raw) || raw;
+          lang = __LANGNORM__(raw) || raw;
         } catch (_) {}
         return {
           bestUrl: `${base}/Videos/${this.item.Id}/${ms.Id}/Subtitles/${s.Index}/0/Stream.vtt`,
@@ -100,6 +101,11 @@ class JellyfinAdapter extends uo {
     const i = this.item;
     if (!i) return "Unknown title";
     return i.SeriesName ? `${i.SeriesName} - ${i.Name}` : i.Name || "Unknown title";
+  }
+
+  // Jellyfin converts ASS to VTT but leaves ASS override codes ({\i1}, {\pos(..)}, \N) in the text.
+  cleanAss(text) {
+    return text.replace(/\{\\[^}]*\}/g, "").replace(/\\[Nn]/g, "\n").replace(/\\h/g, " ");
   }
 
   // ---- lifecycle ------------------------------------------------------------
@@ -169,6 +175,7 @@ class JellyfinAdapter extends uo {
     clearInterval(this.videoMonitorInterval);
     document.getElementById(this.styleId)?.remove();
     document.getElementById(this.uiStyleId)?.remove();
+    this.stopObservingWidth();
     try {
       this.hideSubtitleBrowserStandin();
     } catch (_) {}
@@ -182,9 +189,33 @@ class JellyfinAdapter extends uo {
       document.head.appendChild(s);
     }
     // Hide Jellyfin's own subtitle renderers so only Migaku's overlay shows.
+    // Layout fix: Migaku forces the player container to position:relative while the sidebar stand-in
+    // is active, which collapses Jellyfin's fixed full-viewport player to the video's aspect height
+    // and leaves the OSD at full width underneath the sidebar. Restore fixed full-height and size the
+    // OSD to the (Migaku-resized) player width, exposed through --mgk-jf-w.
+    const act = "body.-mgk-video-page.-mgk-active";
     s.textContent =
       ".videoSubtitles,.libassjs-canvas-parent{display:none!important}" +
-      "video.htmlvideoplayer::cue{background:transparent!important;color:transparent!important;text-shadow:none!important}";
+      "video.htmlvideoplayer::cue{background:transparent!important;color:transparent!important;text-shadow:none!important}" +
+      `${act} .videoPlayerContainer.-mgk-sub-browser-stand-in-sibling{position:fixed!important;top:0!important;left:0!important;bottom:0!important;height:100%!important}` +
+      `${act} #videoOsdPage{right:auto!important;width:var(--mgk-jf-w,100%)!important}` +
+      `${act} #videoOsdPage .videoOsdBottom,${act} .skinHeader.osdHeader,${act} .upNextContainer{right:auto!important;width:var(--mgk-jf-w,100%)!important}`;
+    this.observeWidth();
+  }
+
+  observeWidth() {
+    const pc = document.querySelector(this.standInSiblingSelector);
+    if (!pc || this.widthObserver) return;
+    const apply = () => document.documentElement.style.setProperty("--mgk-jf-w", `${pc.offsetWidth}px`);
+    this.widthObserver = new ResizeObserver(apply);
+    this.widthObserver.observe(pc);
+    apply();
+  }
+
+  stopObservingWidth() {
+    this.widthObserver?.disconnect();
+    this.widthObserver = null;
+    document.documentElement.style.removeProperty("--mgk-jf-w");
   }
 
   // ---- adapter interface ----------------------------------------------------
@@ -209,6 +240,7 @@ class JellyfinAdapter extends uo {
       let text = this.vttCache.get(meta.bestUrl);
       if (text === undefined) {
         text = await this.api().fetch({ url: meta.bestUrl, type: "GET", dataType: "text" });
+        text = this.cleanAss(text);
         this.vttCache.set(meta.bestUrl, text);
       }
       if (isTarget) this.addTrackElement(new Blob([text], { type: "text/vtt" }));
