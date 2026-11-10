@@ -99,7 +99,16 @@ protocol, capture pipeline, where the gates are) are in [`FINDINGS.md`](FINDINGS
 
 ## Legal / ethics
 
-Personal interoperability with your own Migaku subscription. This does not bypass licensing or any
-paywall check, and does not redistribute Migaku's code. I have **not** reviewed Migaku's Terms of
-Service; check them before using this beyond personal experimentation or sharing it.
-Licensed under the MIT License (see `LICENSE`), which covers this project's own code only, not Migaku.
+This is an unofficial, independent project intended for personal interoperability with your own
+Migaku subscription. It does not bypass licensing or any paywall check, and it does not include or
+redistribute Migaku's code: you patch your own locally installed copy.
+
+**No compliance guarantee.** Nothing here is guaranteed to comply with the Terms of Service,
+licence terms or acceptable-use policies of Migaku, Jellyfin, your browser vendor or any other
+party, and modifying a third-party extension may be restricted by those terms. You are solely
+responsible for reading and complying with all applicable terms and for any consequences of using
+this software, including any action taken on your accounts. The software is provided "as is", with
+no warranty of any kind, and the author accepts no liability for how it is used.
+
+Licensed under the MIT License (see `LICENSE`), which covers this project's own code only, not
+Migaku or any other third-party software.
