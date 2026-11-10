@@ -1,0 +1,18 @@
+# Patched copy of the Migaku extension -- third-party code, never commit or redistribute.
+build/
+# Any local copy of the original extension
+migaku-src/
+1.*_0/
+*.crx
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+
+# Local secrets / environment / editor / OS
+.env
+*.log
+.vscode/
+.idea/
+.DS_Store
