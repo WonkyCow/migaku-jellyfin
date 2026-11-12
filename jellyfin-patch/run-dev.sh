@@ -10,7 +10,15 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-[ -f "$REPO/.env" ] && set -a && . "$REPO/.env" && set +a
+# Load .env, but never override variables already set in the environment (env beats .env).
+if [ -f "$REPO/.env" ]; then
+  while IFS='=' read -r key value; do
+    case "$key" in ''|\#*) continue ;; esac
+    key="${key// /}"
+    value="${value%\"}"; value="${value#\"}"; value="${value%\'}"; value="${value#\'}"
+    [ -z "${!key+x}" ] && export "$key=$value"
+  done < "$REPO/.env"
+fi
 
 expand() { eval echo "${1/#\~/$HOME}"; }
 BRAVE_BIN="$(expand "${BRAVE_BIN:-brave-browser}")"

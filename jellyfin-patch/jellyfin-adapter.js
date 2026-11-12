@@ -38,18 +38,63 @@ class JellyfinAdapter extends __BASE__ {
     this.initSwapHotkey();
   }
 
-  // Alt+Shift+S swaps the order of the two subtitle lines; the choice is remembered per browser profile.
-  initSwapHotkey() {
-    const key = "migaku-jf-swap";
-    const set = (on) => {
-      if (on) document.documentElement.setAttribute("data-mgk-jf-swap", "1");
-      else document.documentElement.removeAttribute("data-mgk-jf-swap");
-    };
-    let saved = false;
+  // Alt+Shift+S shows the secondary (e.g. English) line above the target line; remembered per profile.
+  // Migaku renders its UI inside an open shadow root (#MigakuShadowDom), and page-level CSS cannot cross
+  // that boundary, so the rule is injected INTO the shadow root and keyed on an attribute of its host.
+  swapStorageKey = "migaku-jf-swap";
+  // Migaku anchors both subtitle lists at one point: the target list extends up from it and the secondary
+  // list extends down. Swapping therefore needs the target list's height (--mgk-jf-th, kept current by a
+  // ResizeObserver) so the secondary list can sit directly above it instead of on top of it.
+  swapCss =
+    ":host([data-mgk-jf-swap]) .SubtitleOverlay__secondarySubs{top:auto!important;bottom:var(--mgk-jf-th,0px)!important}";
+  targetObserver = null;
+  observedTarget = null;
+
+  swapWanted() {
     try {
-      saved = localStorage.getItem(key) === "1";
-    } catch (_) {}
-    set(saved);
+      return localStorage.getItem(this.swapStorageKey) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Idempotent: (re)creates the style and syncs the attribute whenever Migaku's shadow host is present.
+  syncSwap() {
+    const host = document.querySelector("#MigakuShadowDom");
+    const root = host && host.shadowRoot;
+    if (!root) return;
+    if (!root.getElementById("migaku-jf-swap-style")) {
+      const s = document.createElement("style");
+      s.id = "migaku-jf-swap-style";
+      s.textContent = this.swapCss;
+      root.appendChild(s);
+    }
+    const want = this.swapWanted();
+    if (host.hasAttribute("data-mgk-jf-swap") !== want) {
+      if (want) host.setAttribute("data-mgk-jf-swap", "1");
+      else host.removeAttribute("data-mgk-jf-swap");
+    }
+    this.trackTargetHeight(host, root, want);
+  }
+
+  // Publish the target list's height on the shadow host while the swap is on (re-attaches if Vue re-creates it).
+  trackTargetHeight(host, root, on) {
+    const el = on ? root.querySelector(".SubtitleOverlay__targetSubs") : null;
+    if (el === this.observedTarget) return;
+    this.targetObserver?.disconnect();
+    this.targetObserver = null;
+    this.observedTarget = el;
+    if (!el) {
+      host.style.removeProperty("--mgk-jf-th");
+      return;
+    }
+    const apply = () => host.style.setProperty("--mgk-jf-th", `${Math.round(el.getBoundingClientRect().height)}px`);
+    this.targetObserver = new ResizeObserver(apply);
+    this.targetObserver.observe(el);
+    apply();
+  }
+
+  initSwapHotkey() {
     document.addEventListener(
       "keydown",
       (e) => {
@@ -58,11 +103,10 @@ class JellyfinAdapter extends __BASE__ {
         if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || (e.target && e.target.isContentEditable)) return;
         e.preventDefault();
         e.stopPropagation();
-        const on = !document.documentElement.hasAttribute("data-mgk-jf-swap");
-        set(on);
         try {
-          localStorage.setItem(key, on ? "1" : "0");
+          localStorage.setItem(this.swapStorageKey, this.swapWanted() ? "0" : "1");
         } catch (_) {}
+        this.syncSwap();
       },
       true
     );
@@ -141,6 +185,7 @@ class JellyfinAdapter extends __BASE__ {
 
   // ---- lifecycle ------------------------------------------------------------
   async poll() {
+    this.syncSwap();
     const el = document.querySelector(this.videoElementSelector);
     const live = !!el && el.isConnected && el.readyState >= 1 && el.duration > 0;
     if (!live) {
@@ -230,10 +275,7 @@ class JellyfinAdapter extends __BASE__ {
       "video.htmlvideoplayer::cue{background:transparent!important;color:transparent!important;text-shadow:none!important}" +
       `${act} .videoPlayerContainer.-mgk-sub-browser-stand-in-sibling{position:fixed!important;top:0!important;left:0!important;bottom:0!important;height:100%!important}` +
       `${act} #videoOsdPage{right:auto!important;width:var(--mgk-jf-w,100%)!important}` +
-      `${act} #videoOsdPage .videoOsdBottom,${act} .skinHeader.osdHeader,${act} .upNextContainer{right:auto!important;width:var(--mgk-jf-w,100%)!important}` +
-      // Optional: show the secondary (e.g. English) line ABOVE the target line. Toggle: Alt+Shift+S.
-      `html[data-mgk-jf-swap="1"] .SubtitleOverlay__secondarySubs{top:auto!important;bottom:100%!important}` +
-      `html[data-mgk-jf-swap="1"] .SubtitleOverlay__targetSubs.-has-active-sub.-is-showing-secondary-sub{padding-bottom:0!important;padding-top:16px!important}`;
+      `${act} #videoOsdPage .videoOsdBottom,${act} .skinHeader.osdHeader,${act} .upNextContainer{right:auto!important;width:var(--mgk-jf-w,100%)!important}`;
     this.observeWidth();
   }
 

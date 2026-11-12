@@ -2,6 +2,19 @@
 
 All notable changes to this project. Versions track this project, not Migaku.
 
+## [0.9.1]
+
+### Added
+- Support for Migaku extension **1.32.1.0** (tested alongside 1.32.0.0).
+- The patched extension is now named "Migaku (patched for Jellyfin)" and its version string includes the
+  patch version (for example `1.32.1 + Jellyfin patch 0.9.1`).
+
+### Fixed
+- **Subtitle order swap (Alt+Shift+S):** it previously had no visible effect, because Migaku renders its UI
+  inside a shadow DOM that page-level CSS cannot reach. The rule is now injected into the shadow root, and
+  the secondary line is placed directly above the target line instead of on top of it.
+- `run-dev.sh` now lets environment variables override `.env`, matching `patch.py`.
+
 ## [0.9.0]
 
 First public pre-release (beta): functional and in regular use, but not yet a full stable release

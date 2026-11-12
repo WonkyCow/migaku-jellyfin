@@ -14,16 +14,17 @@ Edits (every anchor is a pattern; the script aborts if one is missing or ambiguo
      table so the content script treats Jellyfin as a video site.
   2. *.umd.cjs (page-world adapter bundle): insert jellyfin-adapter.js and one branch in the
      adapter chain. Minified identifiers it needs are discovered by pattern, not hardcoded.
-  3. manifest.json: rename (so it is distinguishable), drop update_url.
+  3. manifest.json: rename to "Migaku (patched for Jellyfin)", add the patch version to version_name, drop update_url.
   4. delete _metadata/: Chrome rejects reserved '_' directories in unpacked extensions.
-Tested against Migaku 1.32.0.0. Other versions are refused unless --force is given.
+Tested against Migaku 1.32.0.0 and 1.32.1.0. Other versions are refused unless --force is given.
 """
 import argparse, json, os, re, shutil, subprocess, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
-TESTED_VERSIONS = {"1.32.0.0"}
+PROJECT_VERSION = "0.9.1"  # this project's version (shown in the extension's version string)
+TESTED_VERSIONS = {"1.32.0.0", "1.32.1.0"}
 
 
 def load_dotenv(path: Path) -> dict:
@@ -139,7 +140,8 @@ def main():
     # 3. manifest --------------------------------------------------------------------------
     mf = out / "manifest.json"
     m = json.loads(mf.read_text(encoding="utf8"))
-    m["name"] = "Migaku (Jellyfin POC)"
+    m["name"] = "Migaku (patched for Jellyfin)"
+    m["version_name"] = f"{m.get('version_name') or m.get('version')} + Jellyfin patch {PROJECT_VERSION}"
     m.pop("update_url", None)
     mf.write_text(json.dumps(m, indent=2, ensure_ascii=False), encoding="utf8")
 

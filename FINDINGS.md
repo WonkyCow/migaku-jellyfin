@@ -1,6 +1,6 @@
 # Migaku x Jellyfin: technical findings
 
-Notes from analysing Migaku extension **1.32.0.0** (read-only, from the author's own installed copy) to
+Notes from analysing Migaku extension **1.32.0.0** (re-verified against **1.32.1.0**) (read-only, from the author's own installed copy) to
 add the Jellyfin web player as a supported site. Code is paraphrased, not reproduced. All of Migaku's
 JS is minified onto a few very long lines, so "line references" are **character offsets** into the
 named file (`python3 -c "print(open(F).read()[OFF:OFF+600])"`). Offsets are specific to 1.32.0.0.
@@ -90,6 +90,16 @@ project adds no telemetry of its own.
   (`.SubtitleOverlay__targetSubs`, `.SubtitleOverlay__secondarySubs`); position is draggable and stored; a
   background-shade opacity exists as a video option; size and hide toggles have default hotkeys. Only the
   order swap (secondary above target) is missing, which the adapter adds as **Alt+Shift+S** via CSS.
+- **Shadow DOM:** Migaku's whole UI (toolbar, sidebar content, the subtitle overlay) lives in an **open** shadow
+  root on `#MigakuShadowDom`. Page-level CSS cannot style anything inside it (measured: a page rule changed
+  nothing, the same rule inside the shadow root changed a list's height as expected). Styling must be
+  injected into `host.shadowRoot`, keyed on attributes of the host (`:host([attr]) ...`), and re-applied
+  because Migaku re-renders.
+- **Overlay geometry:** `.SubtitleOverlay__container` is positioned by an inline `bottom: max(<position>%, <px>)`
+  and has zero height. Inside it, `.SubtitleOverlay__targetSubs` is absolutely positioned with its bottom edge
+  at that anchor (it grows upward) and `.SubtitleOverlay__secondarySubs` with its top edge at the anchor (it
+  grows downward). Putting the secondary line above the target therefore needs the target list's measured
+  height; `bottom: 100%` alone resolves to the anchor and overlaps the target.
 - **Local Player:** its adapter loads a `videoURL` string from a descriptor object, so a stream URL is plausible,
   but it has no UI for it and lives on the extension's own page; not pursued.
 
@@ -107,4 +117,4 @@ project adds no telemetry of its own.
 
 ## Not yet verified
 Playlist next-episode transitions, mid-playback audio/subtitle switching, HTTPS/WAN hosts, other browsers and
-operating systems, and the appearance of the order swap with the sidebar open.
+operating systems, and the order swap with a long (3+ line) target subtitle.

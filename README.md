@@ -15,14 +15,14 @@ and create flashcards with **sentence audio and a screenshot** from the video, w
 
 ## Status and compatibility
 
-**Version 0.9.0, a public pre-release (beta), not yet a full stable release.** The core features work
+**Version 0.9.1, a public pre-release (beta), not yet a full stable release.** The core features work
 and are in regular use by the author, but several scenarios are still untested (listed below), so
 expect rough edges. It is tied to a specific Migaku version because Migaku's code is minified and
 changes between releases.
 
 | Component | Tested with |
 |---|---|
-| Migaku extension | **1.32.0.0** (other versions are refused unless you pass `--force`) |
+| Migaku extension | **1.32.0.0** and **1.32.1.0** (other versions are refused unless you pass `--force`) |
 | Jellyfin | 10.11.5 (web client) |
 | Browser / OS | Brave (Chromium 153) on Linux |
 
@@ -58,7 +58,7 @@ to you, don't use a host or URL you consider private.
 ## Requirements
 
 - A Chromium-based browser and an active Migaku subscription
-- Migaku extension **1.32.0.0** installed from the Web Store (to copy from)
+- Migaku extension **1.32.1.0** (or 1.32.0.0) installed from the Web Store, to copy from
 - Jellyfin web client, with a **text** subtitle track (SRT/VTT/ASS). Image subs (PGS) can't be used.
 - Python 3 (Node.js only if you want to syntax-check the output)
 
@@ -69,7 +69,7 @@ to you, don't use a host or URL you consider private.
 
    ```bash
    mkdir -p ~/migaku-src
-   cp -r ~/.config/BraveSoftware/Brave-Browser/Default/Extensions/lkhiljgmbeecmljiogckofcalncmfnfo/1.32.0.0_0 ~/migaku-src/
+   cp -r ~/.config/BraveSoftware/Brave-Browser/Default/Extensions/lkhiljgmbeecmljiogckofcalncmfnfo/1.32.1.0_0 ~/migaku-src/
    ```
 
 2. Configure your hosts. Copy the template and edit it (`.env` is git-ignored):
@@ -141,8 +141,8 @@ and can be rebound in its settings):
 | Move subtitles up/down | Drag them; the position is remembered |
 | Put the secondary line **above** the target line | **Alt+Shift+S** (added by this project; remembered per browser profile) |
 
-When the order is swapped, the target line sits a little higher than strictly needed because Migaku
-reserves space for the secondary line below it; drag the subtitles to taste.
+The swap keeps the target line where it is and places the secondary line directly above it. After
+swapping, drag the subtitles if you want them higher or lower.
 
 ## Updating
 
@@ -175,6 +175,8 @@ Remove the extension from the separate profile (or delete the profile directory)
 
 - **Real-time capture:** card audio is recorded live (the cue's duration), like other Migaku sites.
 - **Version pinned:** there are no Web Store auto-updates for the unpacked copy.
+- **Extension name:** the patched copy shows up as "Migaku (patched for Jellyfin)", with the patch version
+  added to its version string, so you can tell it apart from the Store copy.
 - **Hosts required:** the adapter is injected only on the hosts you list, because the patch can't
   safely inject into arbitrary sites.
 - Burned-in or image subtitles can't be read; Jellyfin's own subtitle display is hidden while active.
