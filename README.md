@@ -8,6 +8,11 @@ subtitle sidebar, and card creation with **sentence audio and a screenshot** cap
 
 > **Unofficial third-party project. Use at your own risk** (see [Legal / disclaimer](#legal--disclaimer)).
 > Not affiliated with or endorsed by Migaku or Jellyfin.
+>
+> **Warning:** Migaku's Terms of Service restrict using unofficial extensions with its service and
+> modifying its application. Using this project very likely violates them, and Migaku may restrict or
+> terminate your account without notice and without support. Don't use it on an account you can't
+> afford to lose.
 
 ## Status and compatibility
 
@@ -46,7 +51,10 @@ protocol, capture pipeline, where the gates are) are in [`FINDINGS.md`](FINDINGS
 
 **Privacy:** the adapter only talks to the Jellyfin server of the page you are on, through Jellyfin's
 own web client. This project adds no telemetry and no other network requests. Migaku's own extension
-behaves exactly as it does elsewhere.
+behaves as it does elsewhere, and that includes its own analytics: the recording-related events it
+builds appear to include the page's hostname and full URL, which on Jellyfin means **your server
+address and the page you're watching**. See [`FINDINGS.md`](FINDINGS.md) for details. If that matters
+to you, don't use a host or URL you consider private.
 
 ## Requirements
 
@@ -154,16 +162,22 @@ browser versions. Please never include Migaku's code, your `.env`, or any keys o
 
 ## Legal / disclaimer
 
-This is an unofficial, independent project intended for personal interoperability with your own
-Migaku subscription. It does not bypass licensing or any paywall check, and it does not include or
-redistribute Migaku's code: you patch your own locally installed copy.
+This is an unofficial, independent project. It does not bypass licensing or any paywall check, and it
+does not include or redistribute Migaku's code: you patch your own locally installed copy. It is not
+affiliated with or endorsed by Migaku Inc. or the Jellyfin project.
 
-**No compliance guarantee.** Nothing here is guaranteed to comply with the Terms of Service,
-licence terms or acceptable-use policies of Migaku, Jellyfin, your browser vendor or any other
-party, and modifying a third-party extension may be restricted by those terms. You are solely
-responsible for reading and complying with all applicable terms and for any consequences of using
-this software, including any action taken on your accounts. The software is provided "as is", with
-no warranty of any kind, and the author accepts no liability for how it is used.
+**Migaku's Terms of Service.** As of the version dated September 21, 2023, Migaku's Terms of Service
+prohibit using its service through third-party, community-made or unofficial extensions, tools or
+clients, and prohibit modifying or reverse engineering its application or creating derivative works
+of it. Migaku states it does not support such tools, that they are used entirely at the user's own
+risk, that it provides no support, data recovery or account remediation for problems they cause, and
+that it may terminate or restrict accounts at any time without notice. Using this project very likely
+falls within those restrictions. Read the current Terms yourself; you are solely responsible for
+complying with them and with the terms of any other party (Jellyfin, your browser vendor, and so on),
+and for any consequences of using this software, including any action taken on your accounts.
+
+The software is provided "as is", with no warranty of any kind, and the author accepts no liability
+for how it is used. This is not legal advice.
 
 Licensed under the MIT License (see `LICENSE`), which covers this project's own code only, not
 Migaku or any other third-party software.
