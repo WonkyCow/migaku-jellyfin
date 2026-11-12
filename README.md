@@ -1,14 +1,29 @@
-# Migaku x Jellyfin (personal proof of concept)
+# Migaku x Jellyfin
 
 Makes the [Migaku](https://migaku.com) browser extension treat the **Jellyfin web player** like a
-supported video site (Netflix, YouTube, ...), without a separate "dual subtitles" extension.
+supported video site (Netflix, YouTube, ...), without needing a separate "dual subtitles" extension.
 
-With it working you get Migaku's own subtitle overlay, hover lookups, furigana, known-word
-underlining, the subtitle sidebar, and card creation with **sentence audio and a screenshot**
-captured from the video.
+With it you get Migaku's own subtitle overlay, hover lookups, furigana, known-word underlining, the
+subtitle sidebar, and card creation with **sentence audio and a screenshot** captured from the video.
 
-> **Status: working proof of concept, personal use.** Tested on Jellyfin 10.11.5 with
-> Migaku extension **1.32.0.0** in Brave. Not affiliated with or endorsed by Migaku or Jellyfin.
+> **Unofficial third-party project. Use at your own risk** (see [Legal / disclaimer](#legal--disclaimer)).
+> Not affiliated with or endorsed by Migaku or Jellyfin.
+
+## Status and compatibility
+
+**Version 0.9.0, a public pre-release (beta), not yet a full stable release.** The core features work
+and are in regular use by the author, but several scenarios are still untested (listed below), so
+expect rough edges. It is tied to a specific Migaku version because Migaku's code is minified and
+changes between releases.
+
+| Component | Tested with |
+|---|---|
+| Migaku extension | **1.32.0.0** (other versions are refused unless you pass `--force`) |
+| Jellyfin | 10.11.5 (web client) |
+| Browser / OS | Brave (Chromium 153) on Linux |
+
+Not yet tested: other browsers and operating systems, playlist next-episode transitions,
+mid-playback audio/subtitle switching, and HTTPS/WAN hosts. Reports are welcome.
 
 ## How it works
 
@@ -29,12 +44,16 @@ project adds a Jellyfin adapter in that same slot:
 Migaku's code is **not** in this repo. You patch your own copy locally. Analysis notes (message
 protocol, capture pipeline, where the gates are) are in [`FINDINGS.md`](FINDINGS.md).
 
+**Privacy:** the adapter only talks to the Jellyfin server of the page you are on, through Jellyfin's
+own web client. This project adds no telemetry and no other network requests. Migaku's own extension
+behaves exactly as it does elsewhere.
+
 ## Requirements
 
-- Chromium browser (developed on Brave) and an active Migaku subscription
-- Migaku extension **1.32.0.0** installed (other versions need `--force` and may need patch updates)
+- A Chromium-based browser and an active Migaku subscription
+- Migaku extension **1.32.0.0** installed from the Web Store (to copy from)
 - Jellyfin web client, with a **text** subtitle track (SRT/VTT/ASS). Image subs (PGS) can't be used.
-- Python 3 (and Node.js only if you want to syntax-check the output)
+- Python 3 (Node.js only if you want to syntax-check the output)
 
 ## Setup
 
@@ -62,7 +81,7 @@ protocol, capture pipeline, where the gates are) are in [`FINDINGS.md`](FINDINGS
    Options: `--src`, `--out`, `--hosts`, `--force`. Flags override environment variables, which
    override `.env`.
 
-4. Launch the isolated dev profile (uses `.env` for browser path, profile dir and start URL):
+4. Launch the isolated profile (uses `.env` for browser path, profile dir and start URL):
 
    ```bash
    jellyfin-patch/run-dev.sh            # add --debug for a localhost-only DevTools port (127.0.0.1:9222)
@@ -93,28 +112,47 @@ and can be rebound in its settings):
 When the order is swapped, the target line sits a little higher than strictly needed because Migaku
 reserves space for the secondary line below it; drag the subtitles to taste.
 
-## Tips and known quirks
+## Updating
 
-- **First launch:** if Migaku shows no overlay on a tab that was open at browser start, reload the tab
-  once. Migaku's language core may not have been ready when the page first loaded.
-- **Don't reload the unpacked extension in place** (`chrome.runtime.reload()` or the reload button can
-  leave it disabled). Restart with `run-dev.sh` instead.
-- **Host not recognised?** Hosts must match exactly what's in the address bar's hostname, without the
-  port. A Jellyfin served under a path prefix (e.g. `/jellyfin/web/`) is supported.
+- **Migaku updates:** the Web Store copy in your normal profile updates itself, but the patched copy
+  stays on the version you built. To move to a new Migaku version, copy the new version folder from the
+  installed extension (step 1), then run `python3 jellyfin-patch/patch.py --force --src <new folder>`.
+  If it aborts with an anchor error, Migaku changed something this project depends on; please open an
+  issue with the version number.
+- **This project:** pull the latest, re-run `patch.py`, then restart the browser with `run-dev.sh`.
+
+## Uninstalling
+
+Remove the extension from the separate profile (or delete the profile directory), and delete
+`build/`. Nothing is installed anywhere else and your normal profile and the Store copy are untouched.
+
+## Troubleshooting
+
+- **No overlay on a tab that was open at browser start:** reload the tab once. Migaku's language core
+  may not have been ready when the page first loaded.
+- **Extension shows as disabled after reloading it:** don't reload the unpacked extension in place
+  (`chrome.runtime.reload()` or the reload button can leave it disabled). Restart with `run-dev.sh`.
+- **Host not recognised:** hosts must match the hostname in the address bar, without the port. A
+  Jellyfin served under a path prefix (e.g. `/jellyfin/web/`) is supported.
+- **Build aborts with "untested" or "anchor" errors:** your Migaku version differs from the tested one
+  (see Updating).
+- **No subtitles offered:** the item needs a *text* subtitle track; image-based tracks (PGS) can't be read.
+- **Cards have no audio/image:** press **Alt+R** once in the tab to arm recording.
 
 ## Known limitations
 
 - **Real-time capture:** card audio is recorded live (the cue's duration), like other Migaku sites.
-- **Version pinned:** Migaku's minified code changes between releases. After an update, re-copy the new
-  version and re-run the patch (with `--force` once, then fix anchors if it aborts). There are no Web
-  Store auto-updates for the unpacked copy.
+- **Version pinned:** there are no Web Store auto-updates for the unpacked copy.
 - **Hosts required:** the adapter is injected only on the hosts you list, because the patch can't
   safely inject into arbitrary sites.
 - Burned-in or image subtitles can't be read; Jellyfin's own subtitle display is hidden while active.
-- Not yet tested: playlist next-episode transitions, mid-playback audio/subtitle switching, and
-  HTTPS/WAN hosts.
 
-## Legal / ethics
+## Contributing
+
+Issues and pull requests are welcome, especially compatibility reports for other Migaku, Jellyfin and
+browser versions. Please never include Migaku's code, your `.env`, or any keys or credentials.
+
+## Legal / disclaimer
 
 This is an unofficial, independent project intended for personal interoperability with your own
 Migaku subscription. It does not bypass licensing or any paywall check, and it does not include or
