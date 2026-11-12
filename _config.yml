@@ -7,7 +7,10 @@ theme: jekyll-theme-minimal
 plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
-# Set url/baseurl to your Pages address (keeps canonical links and the sitemap correct), e.g.:
+# Google Search Console ownership verification (rendered by jekyll-seo-tag as a <meta> tag).
+webmaster_verifications:
+  google: 5p8xZGfOqfDZsM0hDYVpOeBddHybxNwMjL0AHV16On0
+# Pages address (keeps canonical links and the sitemap correct).
 url: https://wonkycow.github.io
 baseurl: /migaku-jellyfin
 exclude:
