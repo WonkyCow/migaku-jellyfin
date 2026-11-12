@@ -164,6 +164,10 @@ Remove the extension from the separate profile (or delete the profile directory)
   may not have been ready when the page first loaded.
 - **Extension shows as disabled after reloading it:** don't reload the unpacked extension in place
   (`chrome.runtime.reload()` or the reload button can leave it disabled). Restart with `run-dev.sh`.
+- **Popup shows "Your file couldn't be accessed" (`ERR_FILE_NOT_FOUND`):** the build folder was deleted or
+  rebuilt while the browser was running, so the extension's files vanished from disk. Close the profile's
+  window and start it again with `run-dev.sh`. Close the window before re-running `patch.py`, which
+  recreates the output folder.
 - **Host not recognised:** hosts must match the hostname in the address bar, without the port. A
   Jellyfin served under a path prefix (e.g. `/jellyfin/web/`) is supported.
 - **Build aborts with "untested" or "anchor" errors:** your Migaku version differs from the tested one
