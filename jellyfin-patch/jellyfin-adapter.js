@@ -35,6 +35,37 @@ class JellyfinAdapter extends __BASE__ {
     this.pollId = setInterval(() => {
       this.poll().catch((e) => console.error("[Migaku-JF] poll failed", e));
     }, 700);
+    this.initSwapHotkey();
+  }
+
+  // Alt+Shift+S swaps the order of the two subtitle lines; the choice is remembered per browser profile.
+  initSwapHotkey() {
+    const key = "migaku-jf-swap";
+    const set = (on) => {
+      if (on) document.documentElement.setAttribute("data-mgk-jf-swap", "1");
+      else document.documentElement.removeAttribute("data-mgk-jf-swap");
+    };
+    let saved = false;
+    try {
+      saved = localStorage.getItem(key) === "1";
+    } catch (_) {}
+    set(saved);
+    document.addEventListener(
+      "keydown",
+      (e) => {
+        if (!(e.altKey && e.shiftKey && e.code === "KeyS") || e.ctrlKey || e.metaKey) return;
+        const tag = (e.target && e.target.tagName) || "";
+        if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || (e.target && e.target.isContentEditable)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const on = !document.documentElement.hasAttribute("data-mgk-jf-swap");
+        set(on);
+        try {
+          localStorage.setItem(key, on ? "1" : "0");
+        } catch (_) {}
+      },
+      true
+    );
   }
 
   // ---- Jellyfin API helpers -------------------------------------------------
@@ -199,7 +230,10 @@ class JellyfinAdapter extends __BASE__ {
       "video.htmlvideoplayer::cue{background:transparent!important;color:transparent!important;text-shadow:none!important}" +
       `${act} .videoPlayerContainer.-mgk-sub-browser-stand-in-sibling{position:fixed!important;top:0!important;left:0!important;bottom:0!important;height:100%!important}` +
       `${act} #videoOsdPage{right:auto!important;width:var(--mgk-jf-w,100%)!important}` +
-      `${act} #videoOsdPage .videoOsdBottom,${act} .skinHeader.osdHeader,${act} .upNextContainer{right:auto!important;width:var(--mgk-jf-w,100%)!important}`;
+      `${act} #videoOsdPage .videoOsdBottom,${act} .skinHeader.osdHeader,${act} .upNextContainer{right:auto!important;width:var(--mgk-jf-w,100%)!important}` +
+      // Optional: show the secondary (e.g. English) line ABOVE the target line. Toggle: Alt+Shift+S.
+      `html[data-mgk-jf-swap="1"] .SubtitleOverlay__secondarySubs{top:auto!important;bottom:100%!important}` +
+      `html[data-mgk-jf-swap="1"] .SubtitleOverlay__targetSubs.-has-active-sub.-is-showing-secondary-sub{padding-bottom:0!important;padding-top:16px!important}`;
     this.observeWidth();
   }
 

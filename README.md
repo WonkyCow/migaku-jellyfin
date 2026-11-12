@@ -76,6 +76,23 @@ protocol, capture pipeline, where the gates are) are in [`FINDINGS.md`](FINDINGS
    and press **Alt+R** once per tab to arm tab recording (a Chrome `tabCapture` requirement).
    Then create cards as usual.
 
+## Subtitle display controls
+
+Most display options are Migaku's own and work on Jellyfin unchanged (hotkeys are Migaku's defaults
+and can be rebound in its settings):
+
+| Want to... | How |
+|---|---|
+| Hide / show the secondary (e.g. English) line | **Shift+W**, or the toolbar's video options ("always hide secondary subtitles") |
+| Hide / show the target (e.g. Japanese) line | **W**; **R** hides the whole overlay |
+| Resize subtitles | **Alt+=** / **Alt+-** (target), **Alt+Shift+=** / **Alt+Shift+-** (secondary) |
+| Background transparency | Toolbar video options: "Subtitle overlay background shade" + "Shade opacity" |
+| Move subtitles up/down | Drag them; the position is remembered |
+| Put the secondary line **above** the target line | **Alt+Shift+S** (added by this project; remembered per browser profile) |
+
+When the order is swapped, the target line sits a little higher than strictly needed because Migaku
+reserves space for the secondary line below it; drag the subtitles to taste.
+
 ## Tips and known quirks
 
 - **First launch:** if Migaku shows no overlay on a tab that was open at browser start, reload the tab
