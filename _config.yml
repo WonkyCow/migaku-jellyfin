@@ -1,0 +1,16 @@
+# GitHub Pages / Jekyll configuration (optional). Renders README.md as the home page with SEO meta
+# tags and a sitemap. Enable under: Repo > Settings > Pages > Deploy from branch > main / (root).
+title: Migaku for Jellyfin
+description: Use Migaku in the Jellyfin web player - subtitle lookups, furigana and sentence mining with audio and screenshots, no dual-subtitles extension needed.
+lang: en
+theme: jekyll-theme-minimal
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+# Set url/baseurl to your Pages address (keeps canonical links and the sitemap correct), e.g.:
+url: https://wonkycow.github.io
+baseurl: /migaku-jellyfin
+exclude:
+  - jellyfin-patch
+  - .env.example
+  - Gemfile

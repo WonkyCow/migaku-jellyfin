@@ -1,10 +1,9 @@
-# Migaku x Jellyfin
+# Migaku for Jellyfin: subtitle lookups and sentence mining in the Jellyfin web player
 
-Makes the [Migaku](https://migaku.com) browser extension treat the **Jellyfin web player** like a
-supported video site (Netflix, YouTube, ...), without needing a separate "dual subtitles" extension.
-
-With it you get Migaku's own subtitle overlay, hover lookups, furigana, known-word underlining, the
-subtitle sidebar, and card creation with **sentence audio and a screenshot** captured from the video.
+**Use [Migaku](https://migaku.com) in the Jellyfin web player.** Watch your own library with Migaku's
+subtitle overlay, hover dictionary lookups, furigana, known-word highlighting and the subtitle sidebar,
+and create flashcards with **sentence audio and a screenshot** from the video, with no separate
+"dual subtitles" extension needed.
 
 > **Unofficial third-party project. Use at your own risk** (see [Legal / disclaimer](#legal--disclaimer)).
 > Not affiliated with or endorsed by Migaku or Jellyfin.
@@ -102,6 +101,31 @@ to you, don't use a host or URL you consider private.
 5. In that profile: sign in to Migaku, open Jellyfin, play something, pick a text subtitle track,
    and press **Alt+R** once per tab to arm tab recording (a Chrome `tabCapture` requirement).
    Then create cards as usual.
+
+## FAQ
+
+**Does Migaku work with Jellyfin?**
+Not out of the box: Migaku only treats a fixed list of sites (Netflix, YouTube and similar) as video
+players. This project adds the Jellyfin web player to that list.
+
+**Can I make flashcards with audio and screenshots from Jellyfin?**
+Yes. Cards created from the Jellyfin player include the sentence, its audio and a screenshot of the
+video, captured the same way as on Migaku's supported sites (press Alt+R once per tab to arm recording).
+
+**Do I still need a Jellyfin "dual subtitles" extension?**
+No. This reads the subtitle tracks through Jellyfin's own web client and hands them to Migaku, which
+draws its own overlay.
+
+**Does it work in the Jellyfin desktop or mobile apps?**
+No. It needs the Jellyfin **web** client in a Chromium-based browser. The desktop app plays video
+outside the browser, where extensions can't reach it.
+
+**Which languages does it support?**
+It was tested with Japanese. The adapter itself is language-agnostic, so other Migaku languages should
+work, but they are untested.
+
+**Can I hide the English subtitles while mining?**
+Yes, with Migaku's own controls (Shift+W). See [Subtitle display controls](#subtitle-display-controls).
 
 ## Subtitle display controls
 
